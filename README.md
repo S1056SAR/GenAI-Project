@@ -18,56 +18,56 @@
 
 ---
 
-## 📖 Overview
+##  Overview
 
 **EduSynth AI** is an intelligent educational platform that transforms how students learn. Upload your study materials and interact with three specialized AI agents:
 
 | Mode | Description |
 |------|-------------|
-| 🎓 **Tutor Mode** | Interactive AI tutor with mindmaps, flashcards, and regional language audio |
-| 📝 **Examiner Mode** | Automated exam generation based on syllabus and question banks |
-| 🗺️ **Pathfinder Mode** | Personalized learning journey generator with curriculum design |
+|  **Tutor Mode** | Interactive AI tutor with mindmaps, flashcards, and regional language audio |
+|  **Examiner Mode** | Automated exam generation based on syllabus and question banks |
+|  **Pathfinder Mode** | Personalized learning journey generator with curriculum design |
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
-### 🧠 Multi-Agent Architecture
+###  Multi-Agent Architecture
 - **LangGraph-powered** workflow orchestration
 - Intent detection for smart response generation
 - Session-scoped RAG for isolated topic contexts
 
-### 📚 RAG-Powered Knowledge
+###  RAG-Powered Knowledge
 - Upload PDFs, DOCX, TXT files
 - ChromaDB vector storage with HuggingFace embeddings
 - **Topic-based sessions** - no context mixing between subjects
 
-### 🎤 Regional Language Support
+###  Regional Language Support
 - **Sarvam AI** Text-to-Speech integration
 - Supports 11 Indian languages (Hindi, Tamil, Telugu, etc.)
 - Auto-detects language from user queries
 
-### 📊 Interactive Learning Outputs
+###  Interactive Learning Outputs
 - **Mermaid.js Mindmaps** with zoom controls
 - **Flashcard Decks** with flip animations
 - **Content History** - browse all generated materials
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
 - Git
 
-### 1️⃣ Clone the Repository
+### 1️ Clone the Repository
 ```bash
 git clone https://github.com/yourusername/edusynth-ai.git
 cd edusynth-ai
 ```
 
-### 2️⃣ Backend Setup
+### 2️ Backend Setup
 ```bash
 # Create virtual environment
 python -m venv venv
@@ -82,13 +82,13 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### 3️⃣ Frontend Setup
+### 3️ Frontend Setup
 ```bash
 cd frontend
 npm install
 ```
 
-### 4️⃣ Environment Variables
+### 4️ Environment Variables
 Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=your_groq_api_key
@@ -97,7 +97,7 @@ JWT_SECRET=your_jwt_secret_key
 GOOGLE_CLIENT_ID=your_google_oauth_client_id
 ```
 
-### 5️⃣ Run the Application
+### 5️ Run the Application
 ```bash
 # Terminal 1 - Backend
 python -m uvicorn backend.main:app --reload
@@ -182,7 +182,7 @@ edusynth-ai/
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -198,7 +198,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - [LangGraph](https://github.com/langchain-ai/langgraph) for agent framework
 - [Groq](https://groq.com/) for fast LLM inference
@@ -210,3 +210,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   Made with ❤️ for Education
 </p>
+
