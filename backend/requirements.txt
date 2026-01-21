@@ -16,3 +16,6 @@ requests
 pypdf
 reportlab
 langchain-ollama
+edge-tts
+moviepy
+aiohttp

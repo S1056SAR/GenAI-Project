@@ -24,9 +24,10 @@
 
 | Mode | Description |
 |------|-------------|
-|  **Tutor Mode** | Interactive AI tutor with mindmaps, flashcards, and regional language audio |
-|  **Examiner Mode** | Automated exam generation based on syllabus and question banks |
-|  **Pathfinder Mode** | Personalized learning journey generator with curriculum design |
+| 🎓 **Tutor Mode** | Interactive AI tutor with mindmaps, flashcards, and regional language audio |
+| ❓ **Doubt Solver** | 3D Avatar teacher (Vidya Ma'am) for voice-based doubt resolution |
+| 📝 **Examiner Mode** | Automated exam generation based on syllabus and question banks |
+| 🗺️ **Pathfinder Mode** | Personalized learning journey generator with curriculum design |
 
 ---
 
@@ -92,6 +93,7 @@ npm install
 Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
 SARVAM_API_KEY=your_sarvam_api_key
 JWT_SECRET=your_jwt_secret_key
 GOOGLE_CLIENT_ID=your_google_oauth_client_id
@@ -156,7 +158,9 @@ edusynth-ai/
 | **LangChain** | LLM abstractions |
 | **ChromaDB** | Vector database |
 | **Groq** | LLM inference |
+| **Gemini** | Reasoning (Doubt Solver) |
 | **Sarvam AI** | Regional TTS |
+| **Kokoro TTS** | Local Hindi TTS |
 
 ### Frontend
 | Technology | Purpose |

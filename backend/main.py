@@ -7,6 +7,9 @@ from backend.api.routes_rag import router as rag_router
 from backend.api.routes_tutor import router as tutor_router
 from backend.api.routes_exam import router as exam_router
 from backend.api.routes_journey import router as journey_router
+from backend.api.routes_doubt import router as doubt_router
+from backend.api.routes_voice import router as voice_router
+from backend.api.routes_video import router as video_router
 
 # Core
 from backend.rag.ingestion import get_vector_store
@@ -65,6 +68,9 @@ app.include_router(rag_router)
 app.include_router(tutor_router)
 app.include_router(exam_router, prefix="/exam", tags=["exam"])
 app.include_router(journey_router, prefix="/journey", tags=["journey"])
+app.include_router(doubt_router)
+app.include_router(voice_router)
+app.include_router(video_router)
 
 # Mount static files to serve generated PDFs
 from fastapi.staticfiles import StaticFiles

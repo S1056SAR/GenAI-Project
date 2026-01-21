@@ -63,13 +63,15 @@ INTENT_KEYWORDS = {
     "quiz": ["quiz", "test me", "test my knowledge", "mcq", "multiple choice"],
     "audio": ["audio", "speak", "voice", "podcast", "listen", "read aloud", "tell me",
               "batao", "samjhao", "sunao"],  # Hindi phrases
+    "video": ["video", "video lecture", "video explanation", "generate video", "make a video",
+              "create video", "watch", "show me video", "video tutorial"],
 }
 
 
 def detect_intent(query: str) -> str:
     """
     Detects the primary intent from user query.
-    Returns: "mindmap" | "flashcard" | "quiz" | "audio" | "explain"
+    Returns: "mindmap" | "flashcard" | "quiz" | "audio" | "video" | "explain"
     """
     query_lower = query.lower()
     
@@ -353,6 +355,19 @@ B) Option 2
 C) Option 3
 D) Option 4
 [Correct]: [Letter]"""
+
+    elif intent == "video":
+        # Video generation is handled asynchronously via /video/generate endpoint
+        # This provides a placeholder response while video generates
+        system_prompt = base_system + """
+
+VIDEO LECTURE TASK:
+A video lecture is being generated for this topic. Provide a brief text summary while the video is being created.
+
+STRUCTURE:
+1. Acknowledge that a video is being generated
+2. Provide a brief 2-3 sentence summary of the topic
+3. Mention key points that will be covered in the video"""
 
     else:  # Default: explain
         system_prompt = base_system + """

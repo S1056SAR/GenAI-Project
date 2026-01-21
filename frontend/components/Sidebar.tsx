@@ -1,15 +1,19 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { LayoutDashboard, BookOpen, FileText, Settings, LogOut, GraduationCap, Map } from "lucide-react"
+import { LayoutDashboard, BookOpen, FileText, Settings, LogOut, GraduationCap, Map, HelpCircle, Phone } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+
+import Image from "next/image"
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     { icon: Map, label: "Pathfinder", href: "/dashboard/pathfinder" },
     { icon: GraduationCap, label: "Tutor Mode", href: "/dashboard/tutor" },
+    { icon: HelpCircle, label: "Doubt Solver", href: "/dashboard/doubt-solver" },
+    { icon: Phone, label: "Voice Agent", href: "/dashboard/voice-agent" },
     { icon: FileText, label: "Examiner Mode", href: "/dashboard/exam" },
     { icon: BookOpen, label: "Resources", href: "/dashboard/resources" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
@@ -25,9 +29,13 @@ export default function Sidebar() {
             className="fixed left-4 top-4 bottom-4 z-50 flex w-64 flex-col rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-xl"
         >
             <div className="flex items-center gap-3 p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 shadow-lg shadow-cyan-500/20">
-                    <GraduationCap className="h-6 w-6 text-white" />
-                </div>
+                <Image
+                    src="/edusynth_logo_premium.png"
+                    alt="EduSynth"
+                    width={44}
+                    height={44}
+                    className="rounded-xl shadow-lg"
+                />
                 <span className="text-xl font-bold text-white tracking-tight">EduSynth</span>
             </div>
 

@@ -21,7 +21,7 @@ class GroqKeyManager:
         self.keys = settings.groq_keys_list
         if not self.keys:
             raise ValueError("No GROQ_API_KEYS found in settings!")
-        print(f"✅ Loaded {len(self.keys)} Groq Keys.")
+        print(f"Loaded {len(self.keys)} Groq Keys.")
         for i, k in enumerate(self.keys):
             print(f"   Key #{i+1}: '{k[:5]}...{k[-4:]}' (Length: {len(k)})")
         self.current_index = 0
@@ -32,7 +32,7 @@ class GroqKeyManager:
     def rotate_key(self) -> str:
         self.current_index = (self.current_index + 1) % len(self.keys)
         new_key = self.keys[self.current_index]
-        print(f"🔄 Rotating to Groq Key #{self.current_index + 1}...")
+        print(f" Rotating to Groq Key #{self.current_index + 1}...")
         return new_key
 
 _key_manager = GroqKeyManager()
@@ -78,13 +78,13 @@ def extract_with_rotation(prompt: str, max_retries=10) -> str:
         except Exception as e:
             error_msg = str(e).lower()
             if "429" in error_msg or "rate_limit" in error_msg:
-                print(f"⚠️ Rate Limit Hit on Key #{_key_manager.current_index + 1}")
+                print(f"Rate Limit Hit on Key #{_key_manager.current_index + 1}")
                 # Rotate key immediately
                 new_key = _key_manager.rotate_key()
                 llm = get_groq_llm(new_key)
                 time.sleep(1)
             elif "401" in error_msg or "invalid_api_key" in error_msg:
-                print(f"❌ Invalid Key #{_key_manager.current_index + 1}. Rotating...")
+                print(f"Invalid Key #{_key_manager.current_index + 1}. Rotating...")
                 new_key = _key_manager.rotate_key()
                 llm = get_groq_llm(new_key)
                 time.sleep(0.5)
@@ -116,7 +116,7 @@ async def ingest_exam_papers(directory_path: str = "data/question_papers"):
         # Check if file is already ingested
         existing = vector_store.get(where={"source_file": filename})
         if existing and len(existing["ids"]) > 0:
-            print(f"⏩ Skipping {filename} (Already ingested)")
+            print(f" Skipping {filename} (Already ingested)")
             continue
             
         print(f"Processing {filename}...")
@@ -189,7 +189,7 @@ async def ingest_exam_papers(directory_path: str = "data/question_papers"):
             print(f"Error {filename}: {e}")
             
         if filename == stop_after_file:
-            print(f"🛑 Reached target file '{stop_after_file}'. Stopping ingestion.")
+            print(f" Reached target file '{stop_after_file}'. Stopping ingestion.")
             break
             
     return {"status": "success", "total_questions": total_questions}
