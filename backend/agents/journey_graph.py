@@ -141,11 +141,11 @@ Generate the learning path JSON now:"""
             JourneyNode(id="node_3", title="Advanced Topics", description="Master advanced concepts", status="locked")
         ]
 
-    def generate_node_content(self, node_title: str, user_id: str = "default_user") -> Dict:
+    def generate_node_content(self, node_title: str, course_id: str = None, user_id: str = "default_user") -> Dict:
         """
         Generates lesson content and quiz for a specific node.
         
-        Uses RAG to ground content in user's uploaded materials.
+        Uses course-scoped RAG (Pathfinder) to ground content in uploaded materials.
         
         Returns:
         {
@@ -156,14 +156,21 @@ Generate the learning path JSON now:"""
         print("=" * 60)
         print(f"[CONTENT GENERATOR]: {node_title}")
         print("=" * 60)
-        print(f"   User: {user_id}")
+        print(f"   User: {user_id}, Course: {course_id}")
         
-        # Step 1: Retrieve relevant context
+        # Step 1: Retrieve relevant context from course-scoped RAG
         context = ""
         try:
-            retriever = get_retriever(user_id=user_id)
+            if course_id:
+                # Use Pathfinder-specific retriever (course-scoped)
+                from backend.rag.ingestion import get_pathfinder_retriever
+                retriever = get_pathfinder_retriever(course_id=course_id, user_id=user_id)
+            else:
+                # Fallback to default retriever
+                retriever = get_retriever(user_id=user_id)
+            
             docs = retriever.invoke(node_title)
-            context = "\n\n---\n\n".join([d.page_content for d in docs[:4]])
+            context = "\n\n---\n\n".join([d.page_content for d in docs[:5]])
             print(f"   Retrieved {len(docs)} relevant documents")
         except Exception as e:
             print(f"   Retrieval error: {e}")
@@ -231,7 +238,7 @@ Generate the lesson and quiz JSON now:"""
             content = response.content
             
             # Robust JSON extraction
-            json_match = re.search(r"```json\n(.*?)```", content, re.DOTALL)
+            json_match = re.search(r"```json\s*(.*?)```", content, re.DOTALL)
             if json_match:
                 content = json_match.group(1)
             else:
@@ -240,16 +247,46 @@ Generate the lesson and quiz JSON now:"""
                 if obj_match:
                     content = obj_match.group(0)
             
-            # Clean content
-            content = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", content)
-            # Fix common JSON issues
-            content = content.replace("\\n", "\n")  # Keep actual newlines
             content = content.strip()
             
             if not content:
                 raise ValueError("Empty content from LLM")
             
-            data = json.loads(content)
+            # Try parsing with increasingly aggressive cleaning
+            data = None
+            for attempt in range(3):
+                try:
+                    if attempt == 0:
+                        # First attempt: minimal cleaning
+                        cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', content)
+                        data = json.loads(cleaned)
+                    elif attempt == 1:
+                        # Second attempt: fix common issues
+                        cleaned = content
+                        # Remove control chars
+                        cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', cleaned)
+                        # Fix trailing commas
+                        cleaned = re.sub(r',\s*}', '}', cleaned)
+                        cleaned = re.sub(r',\s*]', ']', cleaned)
+                        # Replace literal newlines in strings with \\n
+                        # This is a heuristic: replace newlines that are inside quoted strings
+                        cleaned = re.sub(r'(?<="[^"]*)\n(?=[^"]*")', '\\\\n', cleaned)
+                        data = json.loads(cleaned)
+                    else:
+                        # Third attempt: most aggressive - rebuild JSON structure
+                        cleaned = content
+                        # Remove all non-printable except space
+                        cleaned = ''.join(c if c.isprintable() or c in '\n\t' else ' ' for c in cleaned)
+                        cleaned = re.sub(r',\s*}', '}', cleaned)
+                        cleaned = re.sub(r',\s*]', ']', cleaned)
+                        # Replace any remaining problematic chars
+                        cleaned = cleaned.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+                        data = json.loads(cleaned)
+                    break
+                except json.JSONDecodeError as e:
+                    if attempt == 2:
+                        print(f"   JSON Parse Error: {e}")
+                        raise
             
             # Validate structure
             if "content_summary" not in data:

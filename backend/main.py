@@ -72,10 +72,11 @@ app.include_router(doubt_router)
 app.include_router(voice_router)
 app.include_router(video_router)
 
-# Mount static files to serve generated PDFs
+# Mount static files to serve generated PDFs and videos
 from fastapi.staticfiles import StaticFiles
 import os
-os.makedirs("generated_exams", exist_ok=True) # Ensure dir exists
+os.makedirs("generated_exams", exist_ok=True)
+os.makedirs("generated_videos", exist_ok=True)
 app.mount("/downloads", StaticFiles(directory="."), name="downloads")
 
 @app.get("/")

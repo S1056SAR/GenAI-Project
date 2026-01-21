@@ -47,13 +47,18 @@ from fastapi import UploadFile, File
 import shutil
 import tempfile
 from langchain_community.document_loaders import PyPDFLoader
+from backend.rag.ingestion import ingest_pathfinder_pdf
 
 @router.post("/start_from_file", response_model=JourneyState)
 async def start_journey_from_file(file: UploadFile = File(...), user: User = Depends(get_current_user)):
     """
     Starts journey from uploaded document (PDF/TXT).
+    Also ingests PDF into course-scoped RAG for content retrieval.
     """
-    # Save to temp file
+    # Generate course_id first so we can use it for RAG collection
+    course_id = str(uuid.uuid4())[:8]
+    
+    # Save to temp file (keep for ingestion)
     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file.filename.split('.')[-1]}") as tmp:
         shutil.copyfileobj(file.file, tmp)
         tmp_path = tmp.name
@@ -61,20 +66,27 @@ async def start_journey_from_file(file: UploadFile = File(...), user: User = Dep
     try:
         text = ""
         if file.filename.endswith(".pdf"):
-            loader = PyPDFLoader(tmp_path)
-            pages = loader.load()
-            text = "\n".join([p.page_content for p in pages])
+            # Use PyMuPDF for better parsing
+            try:
+                import fitz
+                doc = fitz.open(tmp_path)
+                text = "\n".join([page.get_text("text") for page in doc])
+                doc.close()
+            except:
+                # Fallback to PyPDFLoader
+                loader = PyPDFLoader(tmp_path)
+                pages = loader.load()
+                text = "\n".join([p.page_content for p in pages])
+            
+            # Ingest PDF into course-scoped RAG collection
+            chunk_count = ingest_pathfinder_pdf(course_id, user.id, tmp_path)
+            print(f"[PATHFINDER] Ingested {chunk_count} chunks for course {course_id}")
         else:
             with open(tmp_path, "r", encoding="utf-8") as f:
                 text = f.read()
                 
-        # Limit text for prompt (simple truncation for now)
-        # Ideally we'd use RAG, but for "Curriculum Design", the summary/toc is usually enough.
-        # Let's take first 10k chars or use an LLM to summarize if too long. 
-        # For prototype, raw text passed to agent (agent truncates or handles it).
-        
-        course_id = str(uuid.uuid4())[:8]
-        nodes = journey_agent.design_curriculum(text[:15000]) # Pass up to 15k chars context
+        # Design curriculum from text
+        nodes = journey_agent.design_curriculum(text[:15000])
         
         state = JourneyState(
             course_id=course_id,
@@ -97,6 +109,7 @@ async def start_journey_from_file(file: UploadFile = File(...), user: User = Dep
 async def get_node_content(course_id: str, node_id: str, user: User = Depends(get_current_user)):
     """
     Retrieves (or generates) content for a node.
+    Uses course-scoped RAG for context retrieval.
     """
     user_journeys = active_journeys.get(user.id)
     if not user_journeys or course_id not in user_journeys:
@@ -114,8 +127,8 @@ async def get_node_content(course_id: str, node_id: str, user: User = Depends(ge
         
     # Generate content if missing
     if not node.content_summary or not node.quiz_questions:
-        # Pass user_id for context retrieval scoping
-        data = journey_agent.generate_node_content(node.title, user_id=user.id)
+        # Pass course_id and user_id for course-scoped context retrieval
+        data = journey_agent.generate_node_content(node.title, course_id=course_id, user_id=user.id)
         node.content_summary = data.get("content_summary", "")
         node.quiz_questions = data.get("quiz_questions", [])
         

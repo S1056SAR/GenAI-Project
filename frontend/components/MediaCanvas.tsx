@@ -29,6 +29,10 @@ interface MediaCanvasProps {
     mindmapCode?: string | null
     flashcards?: any[] | null
     audioBase64?: string | null
+    // Video props
+    videoUrl?: string | null
+    videoProgress?: number
+    videoStatus?: string | null
     // History arrays
     mindmapHistory?: HistoryItem<string>[]
     flashcardHistory?: HistoryItem<any[]>[]
@@ -47,6 +51,9 @@ export default function MediaCanvas({
     mindmapCode,
     flashcards,
     audioBase64,
+    videoUrl,
+    videoProgress = 0,
+    videoStatus,
     mindmapHistory = [],
     flashcardHistory = [],
     audioHistory = [],
@@ -229,11 +236,35 @@ export default function MediaCanvas({
 
                 {/* Video Lecture */}
                 <div className={cn("absolute inset-0 h-full w-full transition-opacity duration-500 pt-2", activeTab === "video" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none")}>
-                    <div className="flex h-full items-center justify-center bg-black/40">
-                        <div className="text-center">
-                            <PlayCircle className="h-16 w-16 text-white/20 mx-auto mb-4" />
-                            <p className="text-gray-500">Video feature coming soon</p>
-                        </div>
+                    <div className="flex h-full flex-col items-center justify-center bg-black/40 p-8">
+                        {videoUrl ? (
+                            <div className="w-full max-w-3xl">
+                                <video
+                                    controls
+                                    className="w-full rounded-xl shadow-2xl"
+                                    src={`http://localhost:8000${videoUrl}`}
+                                />
+                                <p className="text-center text-sm text-gray-400 mt-4">Your AI-generated lecture</p>
+                            </div>
+                        ) : videoStatus && videoStatus !== "completed" ? (
+                            <div className="text-center space-y-4">
+                                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center animate-pulse">
+                                    <PlayCircle className="h-10 w-10 text-white" />
+                                </div>
+                                <h3 className="text-lg font-medium text-white">Generating Video Lecture</h3>
+                                <p className="text-sm text-gray-400">{videoStatus === "queued" ? "Queued..." : videoStatus === "generating_script" ? "Writing script..." : videoStatus === "generating_audio" ? "Recording narration..." : videoStatus === "fetching_videos" ? "Finding footage..." : videoStatus === "assembling" ? "Assembling video..." : videoStatus}</p>
+                                <div className="w-64 mx-auto bg-white/10 rounded-full h-2">
+                                    <div className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-500" style={{ width: `${videoProgress}%` }} />
+                                </div>
+                                <p className="text-xs text-gray-500">{videoProgress}% complete</p>
+                            </div>
+                        ) : (
+                            <div className="text-center">
+                                <PlayCircle className="h-16 w-16 text-white/20 mx-auto mb-4" />
+                                <h3 className="text-lg font-medium text-white">Video Lecture</h3>
+                                <p className="text-gray-500">Ask the tutor to "generate a video" about any topic.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { LayoutDashboard, BookOpen, FileText, Settings, LogOut, GraduationCap, Map, HelpCircle, Phone } from "lucide-react"
+import { LayoutDashboard, BookOpen, FileText, Settings, LogOut, GraduationCap, Map, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -13,7 +13,6 @@ const sidebarItems = [
     { icon: Map, label: "Pathfinder", href: "/dashboard/pathfinder" },
     { icon: GraduationCap, label: "Tutor Mode", href: "/dashboard/tutor" },
     { icon: HelpCircle, label: "Doubt Solver", href: "/dashboard/doubt-solver" },
-    { icon: Phone, label: "Voice Agent", href: "/dashboard/voice-agent" },
     { icon: FileText, label: "Examiner Mode", href: "/dashboard/exam" },
     { icon: BookOpen, label: "Resources", href: "/dashboard/resources" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },

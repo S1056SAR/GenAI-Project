@@ -24,3 +24,4 @@ aiohttp
 google-generativeai
 edge-tts
 moviepy
+pymupdf

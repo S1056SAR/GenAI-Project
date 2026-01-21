@@ -50,6 +50,12 @@ export default function TutorPage() {
     const [flashcardHistory, setFlashcardHistory] = useState<HistoryItem<any[]>[]>([])
     const [audioHistory, setAudioHistory] = useState<HistoryItem<string>[]>([])
 
+    // Video generation state
+    const [videoJobId, setVideoJobId] = useState<string | null>(null)
+    const [videoProgress, setVideoProgress] = useState(0)
+    const [videoStatus, setVideoStatus] = useState<string | null>(null)
+    const [videoUrl, setVideoUrl] = useState<string | null>(null)
+
     // Current selection index for each type
     const [selectedMindmapIndex, setSelectedMindmapIndex] = useState(0)
     const [selectedFlashcardIndex, setSelectedFlashcardIndex] = useState(0)
@@ -164,30 +170,46 @@ export default function TutorPage() {
             const response = await api.tutor.startSession(userMsg, wantsAudio, "hi-IN", currentSession)
             const timestamp = new Date().toLocaleTimeString()
 
-            // Add to history arrays instead of replacing
-            if (response.mindmap_source) {
-                setMindmapHistory(prev => {
-                    const newHistory = [...prev, { data: response.mindmap_source, timestamp, query: userMsg }]
-                    setSelectedMindmapIndex(newHistory.length - 1)
-                    return newHistory
-                })
-            }
-            if (response.flashcards && response.flashcards.length > 0) {
-                setFlashcardHistory(prev => {
-                    const newHistory = [...prev, { data: response.flashcards, timestamp, query: userMsg }]
-                    setSelectedFlashcardIndex(newHistory.length - 1)
-                    return newHistory
-                })
-            }
-            if (response.audio_base64) {
-                setAudioHistory(prev => {
-                    const newHistory = [...prev, { data: response.audio_base64, timestamp, query: userMsg }]
-                    setSelectedAudioIndex(newHistory.length - 1)
-                    return newHistory
-                })
-            }
+            // Handle video generation
+            if (response.detected_intent === "video" && response.video_job_id) {
+                setVideoJobId(response.video_job_id)
+                setVideoStatus("queued")
+                setVideoProgress(0)
+                setVideoUrl(null)
 
-            setMessages(prev => [...prev, { role: "bot", content: response.response }])
+                // Start polling for video status
+                pollVideoStatus(response.video_job_id)
+
+                setMessages(prev => [...prev, {
+                    role: "bot",
+                    content: `🎬 Video lecture is being generated! This may take 1-2 minutes.\n\n${response.response}`
+                }])
+            } else {
+                // Regular response handling
+                if (response.mindmap_source) {
+                    setMindmapHistory(prev => {
+                        const newHistory = [...prev, { data: response.mindmap_source, timestamp, query: userMsg }]
+                        setSelectedMindmapIndex(newHistory.length - 1)
+                        return newHistory
+                    })
+                }
+                if (response.flashcards && response.flashcards.length > 0) {
+                    setFlashcardHistory(prev => {
+                        const newHistory = [...prev, { data: response.flashcards, timestamp, query: userMsg }]
+                        setSelectedFlashcardIndex(newHistory.length - 1)
+                        return newHistory
+                    })
+                }
+                if (response.audio_base64) {
+                    setAudioHistory(prev => {
+                        const newHistory = [...prev, { data: response.audio_base64, timestamp, query: userMsg }]
+                        setSelectedAudioIndex(newHistory.length - 1)
+                        return newHistory
+                    })
+                }
+
+                setMessages(prev => [...prev, { role: "bot", content: response.response }])
+            }
 
         } catch (error: any) {
             setMessages(prev => [...prev, { role: "bot", content: "Sorry, I can't answer that right now." }])
@@ -200,6 +222,60 @@ export default function TutorPage() {
             setIsLoading(false)
         }
     }
+
+    // Poll for video generation status
+    const pollVideoStatus = async (jobId: string) => {
+        const maxAttempts = 120 // 2 minutes with 1s intervals
+        let attempts = 0
+
+        const poll = async () => {
+            try {
+                const status = await api.video.status(jobId)
+                setVideoStatus(status.status)
+                setVideoProgress(status.progress)
+
+                if (status.status === "completed" && status.video_url) {
+                    setVideoUrl(status.video_url)
+                    setMessages(prev => [...prev, {
+                        role: "bot",
+                        content: `✅ Your video lecture is ready! Watch it in the media panel.`
+                    }])
+                    toast({
+                        title: "Video Ready!",
+                        description: "Your video lecture has been generated."
+                    })
+                    return
+                } else if (status.status === "failed") {
+                    setMessages(prev => [...prev, {
+                        role: "bot",
+                        content: `❌ Video generation failed: ${status.error || "Unknown error"}`
+                    }])
+                    toast({
+                        variant: "destructive",
+                        title: "Video Failed",
+                        description: status.error || "Could not generate video"
+                    })
+                    return
+                }
+
+                attempts++
+                if (attempts < maxAttempts) {
+                    setTimeout(poll, 1000)
+                } else {
+                    setMessages(prev => [...prev, { role: "bot", content: "⏱️ Video generation timed out. Please try again." }])
+                }
+            } catch (error) {
+                console.error("Error polling video status:", error)
+                attempts++
+                if (attempts < maxAttempts) {
+                    setTimeout(poll, 2000) // Retry with longer delay on error
+                }
+            }
+        }
+
+        poll()
+    }
+
 
     return (
         <div className="h-[calc(100vh-8rem)] w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm relative">
@@ -478,6 +554,9 @@ export default function TutorPage() {
                         mindmapCode={mindmapHistory[selectedMindmapIndex]?.data || null}
                         flashcards={flashcardHistory[selectedFlashcardIndex]?.data || null}
                         audioBase64={audioHistory[selectedAudioIndex]?.data || null}
+                        videoUrl={videoUrl}
+                        videoProgress={videoProgress}
+                        videoStatus={videoStatus}
                         mindmapHistory={mindmapHistory}
                         flashcardHistory={flashcardHistory}
                         audioHistory={audioHistory}
