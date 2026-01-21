@@ -91,6 +91,7 @@ vector_db/
 # Generated Files
 # --------------------
 generated_exams/
+generated_videos/
 EduSynth_Exam_*.pdf
 *.generated.*
 
@@ -110,3 +111,25 @@ htmlcov/
 *.tmp
 *.temp
 .cache/
+
+# --------------------
+# Project Specific
+# --------------------
+# WhatsApp and temp images
+WhatsApp*.jpeg
+WhatsApp*.jpg
+WhatsApp*.png
+
+# Root level package files (use frontend/backend specific ones)
+/package.json
+/package-lock.json
+
+# Large assets (store separately or use LFS)
+*.mp4
+*.avi
+*.mov
+*.wav
+*.mp3
+
+# Temp audio files
+temp-audio.m4a
